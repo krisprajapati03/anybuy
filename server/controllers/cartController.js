@@ -116,3 +116,25 @@ exports.removeFromCart = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+// @desc Clear all items in the user's cart
+// @route DELETE /api/cart/clear/:userId
+exports.clearCartController = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.cart = []; // Clear cart array
+    await user.save();
+
+    res.json({ success: true, message: "Cart cleared", cart: user.cart });
+  } catch (err) {
+    console.error("Failed to clear cart:", err);
+    res.status(500).json({ success: false, message: "Failed to clear cart" });
+  }
+};

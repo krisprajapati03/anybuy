@@ -7,7 +7,6 @@ const Navbar = () => {
   const { logout, user } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const timerRef = useRef(null);
   const profileRef = useRef(null);
   const navigate = useNavigate();
 
@@ -34,6 +33,7 @@ const Navbar = () => {
     <nav className="bg-rich-300 shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
+          {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-gray-800">
               Any-Buy
@@ -61,8 +61,9 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Icons */}
+          {/* Icons and Profile */}
           <div className="flex items-center">
+            {/* Cart Icon */}
             <Link to="/cart" className="p-2 text-gray-700 hover:text-gray-800">
               <ShoppingCart className="h-6 w-6" />
             </Link>
@@ -79,7 +80,7 @@ const Navbar = () => {
               </button>
 
               {showProfileMenu && (
-                <div className="origin-top-right absolute right-0 mt-2 w-48 -translate-y-2 translate-x-14 rounded-md shadow-lg py-1 x- z-50 bg-rich-100 ring-1 ring-black ring-opacity-5">
+                <div className="origin-top-right absolute right-0 mt-2 w-48 -translate-y-2 translate-x-14 rounded-md shadow-lg py-1 z-50 bg-rich-100 ring-1 ring-black ring-opacity-5">
                   {user ? (
                     <>
                       <Link
@@ -87,6 +88,12 @@ const Navbar = () => {
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-rich-300"
                       >
                         Profile
+                      </Link>
+                      <Link
+                        to="/orders"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-rich-300"
+                      >
+                        Your Orders
                       </Link>
                       <button
                         onClick={logout}
@@ -115,7 +122,7 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Add Product Button */}
+            {/* Add Product Icon (for shopkeeper/renowned) */}
             {user &&
               (user.userType === "shopkeeper" ||
                 user.userType === "renowned") && (

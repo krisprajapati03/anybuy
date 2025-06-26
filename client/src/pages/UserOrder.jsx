@@ -23,7 +23,7 @@ const UserOrder = () => {
                   return {
                     ...item,
                     name: productRes.data.name,
-                    photo: productRes.data.photo,
+                    image: productRes.data.image,
                   };
                 })
               );
@@ -54,11 +54,13 @@ const UserOrder = () => {
               >
                 {/* Left: Product Info */}
                 <div className="flex gap-4 items-center md:w-1/3 w-full">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-24 h-24 object-cover rounded-lg border"
-                  />
+                  <div className="w-24 h-24 flex items-center justify-center border rounded-lg bg-white">
+                    <img
+                        src={`http://localhost:5000/${item.image}`}
+                        alt={item.name}
+                        className="w-16 h-16 object-contain"
+                    />
+                    </div>
                   <div>
                     <h3 className="text-lg font-semibold">{item.name}</h3>
                     <p className="text-gray-600">

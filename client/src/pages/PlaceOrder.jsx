@@ -3,9 +3,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-// Helper to get userId from backend or cookie (adjust as needed)
-const getUserId = async () => {
-  // Fallback: get userId from localStorage if you store it after login
+// Helper to get userId from localStorage
+const getUserId = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   return user && user._id ? user._id : null;
 };
@@ -14,61 +13,43 @@ const PlaceOrder = () => {
   const [cartItems, setCartItems] = useState([]);
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // Fetch userId and cart from backend
+  // Fetch cart and user
   useEffect(() => {
     const fetchCart = async () => {
       setLoading(true);
-      const uid = await getUserId();
+      const uid = getUserId();
       setUserId(uid);
       if (!uid) {
         setLoading(false);
         return;
       }
+
       try {
-        // Remove withCredentials for debugging if your backend does not require cookies for /api/cart/:userId
-        // Or, if your backend requires authentication, ensure you are logged in and the cookie is present
-
-        // Try fetching cart without withCredentials (for public cart endpoint)
-        let cartRes;
-        try {
-          cartRes = await axios.get(`http://localhost:5000/api/cart/${uid}`);
-        } catch (err) {
-          // If fails, try with credentials (for authenticated cart endpoint)
-          cartRes = await axios.get(`http://localhost:5000/api/cart/${uid}`, {
-            withCredentials: true,
-          });
-        }
-
-        // Debug: log cart response
-        console.log("Cart API response:", cartRes.data);
-
-        // Defensive: check if cartRes.data.cart is an array and has items with quantity > 0
-        if (
-          Array.isArray(cartRes.data.cart) &&
-          cartRes.data.cart.some((item) => item.quantity > 0)
-        ) {
+        const cartRes = await axios.get(`http://localhost:5000/api/cart/${uid}`);
+        if (Array.isArray(cartRes.data.cart) && cartRes.data.cart.length > 0) {
           setCartItems(cartRes.data.cart);
         } else {
           setCartItems([]);
-          console.warn("Cart is empty or all items have quantity 0.");
         }
       } catch (err) {
-        // Debug: log error
         console.error("Cart fetch error:", err);
         setCartItems([]);
       }
+
       setLoading(false);
     };
+
     fetchCart();
   }, []);
 
-  // Calculate total
-  const getCartTotal = (orderItems) => {
-    return orderItems.reduce(
-      (total, item) => total + (item.price || 0) * (item.quantity || 0),
-      0
-    );
+  const getCartTotal = (items) => {
+    return items.reduce((total, item) => {
+      const price = item.product?.price || 0;
+      const quantity = item.quantity || 0;
+      return total + price * quantity;
+    }, 0);
   };
 
   const [formData, setFormData] = useState({
@@ -85,8 +66,8 @@ const PlaceOrder = () => {
     giftOption: false,
     billingSame: true,
   });
+
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -100,14 +81,17 @@ const PlaceOrder = () => {
     e.preventDefault();
 
     try {
-      // Build orderItems as expected by backend
       const orderItems = cartItems.map((item) => ({
-        productId: item.product._id,
+        productId: item.product?._id || item.productId,
         quantity: item.quantity,
-        price: item.product.price,
+        price: item.product?.price || item.price || 0,
       }));
 
-      // Build address string (adjust as needed)
+      const amount = orderItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+
       const addressString = [
         formData.address,
         formData.apartment,
@@ -121,40 +105,28 @@ const PlaceOrder = () => {
       const orderData = {
         userId,
         items: orderItems,
-        amount: getCartTotal(orderItems),
+        amount,
         address: addressString,
       };
 
-      const result = await axios.post(
-        "http://localhost:5000/api/order/placeorder",
-        orderData,
-        { withCredentials: true }
-      );
-      console.log(result.data);
+      // Place Order API
+      await axios.post("http://localhost:5000/api/order/placeorder", orderData);
 
-      // Optionally, clear cart and redirect
+      // Clear Cart
+      await axios.delete(`http://localhost:5000/api/cart/clear/${userId}`);
+
+      toast.success("Order placed successfully!");
       navigate("/orders");
-    } catch (error) {
-      console.error("Error placing order:", error);
-      setError("Failed to place order. Please try again.");
+    } catch (err) {
+      console.error("Error placing order:", err);
       toast.error("Failed to place order. Please try again.");
+      setError("Failed to place order. Please try again.");
     }
   };
 
   if (loading) {
     return <div className="text-center mt-10">Loading...</div>;
   }
-
-  // if (!cartItems.length || !cartItems.some((item) => item.quantity > 0)) {
-  //   // Debug: log cartItems for troubleshooting
-  //   console.log("cartItems at render:", cartItems);
-  //   return (
-  //     <div className="text-red-600 text-center mt-10">
-  //       Cart not available. Please add items to cart.
-  //     </div>
-  //   );
-  // }
-
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-10">
@@ -163,19 +135,18 @@ const PlaceOrder = () => {
         <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Gift Option */}
         <div className="flex items-center">
           <input
             type="checkbox"
             name="giftOption"
             checked={formData.giftOption}
             onChange={handleChange}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+            className="h-4 w-4 text-blue-600 border-gray-300"
           />
           <label className="ml-2 text-gray-700">This order is a gift</label>
         </div>
 
-        {/* Delivery Address */}
+        {/* Address */}
         <div>
           <h3 className="text-lg font-semibold mb-2">Delivery Address</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -277,22 +248,20 @@ const PlaceOrder = () => {
           />
         </div>
 
-        {/* Billing Address */}
+        {/* Billing */}
         <div className="flex items-center">
           <input
             type="checkbox"
             name="billingSame"
             checked={formData.billingSame}
             onChange={handleChange}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+            className="h-4 w-4 text-blue-600 border-gray-300"
           />
           <label className="ml-2 text-gray-700">Use as billing address</label>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
-          onSubmit={handleSubmit}
           className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
         >
           Proceed to Payment

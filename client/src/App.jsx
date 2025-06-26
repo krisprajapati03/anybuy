@@ -14,6 +14,7 @@ import ProductDetails from "./pages/ProductDetails";
 import ProductListSection from "./pages/ProductListSection";
 import Profile from "./pages/Profile";
 import Register from "./pages/Register";
+import UserOrder from "./pages/UserOrder";
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -47,6 +48,7 @@ function App() {
           <Route path="/allproducts" element={<AllProducts />} />
           <Route path="/placeorder" element={<PlaceOrder />} />
           <Route path="/addproduct" element={<AddProduct />} />
+          <Route path="/orders" element={<UserOrder />} />
         </Routes>
       </div>
     </AuthProvider>

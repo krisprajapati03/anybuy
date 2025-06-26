@@ -8,14 +8,18 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        {
-          email,
-          password,
-        },
-        { withCredentials: true }
-      );
+      const { data } = 
+      // src/Pages/Login.jsx or wherever login is handled
+                axios.post("http://localhost:5000/api/auth/login", {
+                  email,
+                  password,
+                }).then((res) => {
+                  const user = res.data.user; // Make sure this includes _id
+                  if (user) {
+                    localStorage.setItem("user", JSON.stringify(user)); // ✅ Save user here
+                    navigate("/cart"); // or wherever you redirect
+                  }
+                });
       setUser(data);
     } catch (error) {
       throw error;

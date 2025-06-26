@@ -2,11 +2,21 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+// import { useSelector } from 'react-redux';
 
 const Cart = () => {
   const [cart, setCart] = useState([]);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+
+  // const cartItems = useSelector(state => state.cart.items);
+
+  const handleCheckout = () => {
+    navigate('/placeorder');
+  };
+
+
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -141,10 +151,7 @@ const Cart = () => {
               Total: ₹{totalAmount.toFixed(2)}
             </h3>
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                navigate("/placeorder");
-              }}
+              onClick={handleCheckout}
               className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Proceed to Checkout

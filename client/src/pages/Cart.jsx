@@ -9,6 +9,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // console.log("User:", user._id);
 
   // const cartItems = useSelector(state => state.cart.items);
 

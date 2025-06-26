@@ -133,7 +133,7 @@ const PlaceOrder = () => {
       console.log(result.data);
 
       // Optionally, clear cart and redirect
-      // navigate("/order-success");
+      navigate("/orders");
     } catch (error) {
       console.error("Error placing order:", error);
       setError("Failed to place order. Please try again.");
@@ -154,6 +154,7 @@ const PlaceOrder = () => {
   //     </div>
   //   );
   // }
+
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-10">
@@ -291,6 +292,7 @@ const PlaceOrder = () => {
         {/* Submit Button */}
         <button
           type="submit"
+          onSubmit={handleSubmit}
           className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
         >
           Proceed to Payment
